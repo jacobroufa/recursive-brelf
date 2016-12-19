@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Recursive Brelf</title>
+
+        <style>
+            .brelf-bg {
+                background-image: url("brelf-alpha.png");
+                background-position: 50% 50%;
+                background-repeat: no-repeat;
+                background-size: 0%;
+                height: 100%;
+                left: 0;
+                min-height: 1264px;
+                min-width: 1112px;
+                position: absolute;
+                top: 0;
+                width: 100%;
+            }
+        </style>
+    </head>
+    <body id="body">
+        <div id="brelf" class="brelf-bg"></div>
+        <div id="brelf2" class="brelf-bg"></div>
+
+        <script src="//ajax.googleapis.com/ajax/libs/dojo/1.11.2/dojo/dojo.js"></script>
+        <script>
+            require([
+                'dojo/_base/lang',
+                'dojo/debounce',
+                'dojo/dom',
+                'dojo/dom-attr',
+                'dojo/dom-construct',
+                'dojo/dom-geometry',
+                'dojo/dom-style',
+                'dojo/on',
+                'dojo/touch',
+                'dojo/window',
+                'dojo/domReady!'
+            ], function (lang, debounce, dom, attr, domConstruct, domGeom, style, on, touch, win) {
+                var brelf = dom.byId('brelf');
+                var brelf2 = dom.byId('brelf2');
+                var viewport = win.getBox();
+
+                var body = document.body;
+                var speed = 0.25;
+                var paused = true;
+                var zindex = false;
+                var zindex2 = false;
+                var shrinking;
+
+                style.set(brelf2, 'backgroundSize', '100%');
+
+                on(brelf, 'click', pauseBrelf);
+                on(brelf2, 'click', pauseBrelf);
+
+                on(body, touch.move, debounce(function (event) {
+                    event.preventDefault();
+                    positionBrelf(event.clientX, event.clientY);
+                }, 100));
+
+                function pauseBrelf (event) {
+                    if (paused) {
+                        shrinking = setInterval(zoomIn);
+                    } else {
+                        clearInterval(shrinking);
+                    }
+
+                    paused = !paused;
+                }
+
+                function zoomIn () {
+                    setZoom(brelf, zindex);
+                    setZoom(brelf2, zindex2);
+                }
+
+                function setZoom (el, zindex) {
+                    var bs = style.get(el, 'backgroundSize');
+                    var size = parseFloat(bs.slice(0, -1), 10) + speed;
+
+                    if (size >= 101 && !zindex) {
+                        style.set(el, 'zIndex', '0');
+                        zindex = true;
+                    }
+
+                    if (size >= 201) {
+                        size = 0;
+                        style.set(el, 'zIndex', '1');
+                        zindex = false;
+                    }
+
+                    style.set(el, 'backgroundSize', size + '%');
+                }
+
+                function positionBrelf(x, y) {
+                    var scaledX = Math.floor(x / viewport.w * 100);
+                    var scaledY = Math.floor(y / viewport.h * 100);
+
+                    style.set(brelf, 'backgroundPosition', scaledX + '%' + ' ' + scaledY + '%');
+                    style.set(brelf2, 'backgroundPosition', scaledX + '%' + ' ' + scaledY + '%');
+                }
+            });
+        </script>
+    </body>
+</html>
